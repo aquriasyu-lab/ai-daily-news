@@ -1,8 +1,6 @@
 name: 每日更新AI动态
 
 on:
-  schedule:
-    - cron: '0 0 * * *'
   workflow_dispatch: {}
 
 permissions:
