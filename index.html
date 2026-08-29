@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI情报站 · 每日看板</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink: #12151a;
+    --ink-panel: #1a1e25;
+    --ink-line: #2b313b;
+    --paper: #e7e2d3;
+    --text-dim: #8891a0;
+    --text-faint: #565f6b;
+    --signal: #3e8e7e;
+    --signal-bright: #56b39f;
+    --pin: #b3453a;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'IBM Plex Sans', sans-serif;
+    min-height: 100vh;
+  }
+  .wrap{
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 40px 20px 80px;
+  }
+
+  /* ---- Masthead ---- */
+  header{
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding-bottom: 22px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--ink-line);
+  }
+  .brand{ display: flex; align-items: baseline; gap: 10px; }
+  .brand-mark{
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.14em;
+    color: var(--ink);
+    background: var(--signal-bright);
+    padding: 4px 8px;
+  }
+  h1{ font-family: 'IBM Plex Serif', serif; font-weight: 700; font-size: 24px; }
+  .meta{
+    text-align: right;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+  .meta .count{ color: var(--signal-bright); font-weight: 600; }
+
+  /* ---- Main tabs ---- */
+  .main-tabs{
+    display: flex;
+    gap: 6px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .main-tab{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.03em;
+    color: var(--text-dim);
+    background: var(--ink-panel);
+    border: 1px solid var(--ink-line);
+    padding: 9px 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .main-tab:hover{ color: var(--paper); }
+  .main-tab.active{
+    background: var(--signal-bright);
+    color: var(--ink);
+    border-color: var(--signal-bright);
+    font-weight: 600;
+  }
+
+  /* ---- Sub chips (verticals / companies) ---- */
+  .sub-chips{
+    display: none;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 20px;
+  }
+  .sub-chips.show{ display: flex; }
+  .sub-chip{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    background: transparent;
+    border: 1px solid var(--ink-line);
+    padding: 6px 12px;
+    cursor: pointer;
+  }
+  .sub-chip:hover{ color: var(--paper); border-color: var(--text-dim); }
+  .sub-chip.active{
+    color: var(--signal-bright);
+    border-color: var(--signal-bright);
+  }
+
+  .section-title{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  /* ---- List ---- */
+  .list{ display: flex; flex-direction: column; gap: 1px; background: var(--ink-line); }
+  .row{ background: var(--ink); }
+  .row summary{
+    list-style: none;
+    cursor: pointer;
+    padding: 12px 4px;
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+  .row summary::-webkit-details-marker{ display: none; }
+  .rank{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-faint);
+    width: 20px;
+    flex-shrink: 0;
+  }
+  .row-headline{
+    font-family: 'IBM Plex Serif', serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--paper);
+    flex: 1;
+    line-height: 1.4;
+  }
+  .row-time{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-faint);
+    flex-shrink: 0;
+  }
+  .row-body{
+    padding: 0 4px 16px 32px;
+  }
+  .row-summary{
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+  .row-tags{ display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .row-tag{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--signal-bright);
+    border: 1px solid var(--ink-line);
+    padding: 2px 7px;
+  }
+  .row-source{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-faint);
+  }
+  .row-source::before{ content: "// "; color: var(--pin); }
+
+  .empty{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--text-faint);
+    padding: 24px 4px;
+  }
+
+  footer{
+    margin-top: 36px;
+    padding-top: 16px;
+    border-top: 1px solid var(--ink-line);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-faint);
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <span class="brand-mark">AI</span>
+        <h1>情报站</h1>
+      </div>
+      <div class="meta">
+        <div id="date-line">读取中…</div>
+        <div>今日共收录 <span class="count" id="count-num">-</span> 条</div>
+      </div>
+    </header>
+
+    <div class="main-tabs" id="main-tabs">
+      <div class="main-tab active" data-view="global">全球 TOP20</div>
+      <div class="main-tab" data-view="china">中国 TOP20</div>
+      <div class="main-tab" data-view="vertical">行业垂域</div>
+      <div class="main-tab" data-view="company">重点公司</div>
+    </div>
+
+    <div class="sub-chips" id="vertical-chips"></div>
+    <div class="sub-chips" id="company-chips"></div>
+
+    <div class="section-title">
+      <span id="section-title-text">GLOBAL TOP 20</span>
+      <span id="section-count"></span>
+    </div>
+
+    <div class="list" id="list">
+      <div class="empty">正在读取今日信号…</div>
+    </div>
+
+    <footer>AI DAILY DISPATCH · 排序为AI按重要性判断的结果，仅供参考 · 请以原文为准</footer>
+  </div>
+
+<script>
+  const VERTICALS = ["Foundation Models","AI Agent","AI Coding","AI Search","AI Phone","AI Hardware","Robotics","AI Infrastructure","AI Enterprise","AI Investment"];
+  const COMPANIES = ["OpenAI","Anthropic","Google","NVIDIA","Meta","DeepSeek","Qwen","Kimi"];
+
+  const FALLBACK_DATA = { "updated_at": "2026-08-20T08:00:00+08:00", "items": [
+    { "id":"0001","time":"08:32","region":"global","verticals":["AI Agent"],"companies":["OpenAI"],"headline":"OpenAI Agent能力从辅助工具走向执行主体","summary":"多款产品强化Agent能力，标志AI从回答问题迈向完成任务的新阶段。","source":"TechCrunch" },
+    { "id":"0002","time":"07:58","region":"global","verticals":["AI Coding","AI Agent"],"companies":["Anthropic"],"headline":"Claude Code进一步强化Agent能力","summary":"新版本在复杂任务、长程执行与工具使用上表现提升。","source":"The Information" },
+    { "id":"0003","time":"07:21","region":"global","verticals":["AI Infrastructure","AI Hardware"],"companies":["NVIDIA"],"headline":"AI基础设施竞争进入新阶段","summary":"新一代GPU与网络平台发布，推动训练与推理效率再突破。","source":"Reuters" },
+    { "id":"0004","time":"07:10","region":"china","verticals":["AI Enterprise","AI Investment"],"companies":["腾讯"],"headline":"腾讯二季度AI相关资本开支同比激增176%","summary":"自由现金流二十年来首次转负，管理层提出打造AI赋能的新腾讯。","source":"腾讯财报" },
+    { "id":"0005","time":"06:45","region":"global","verticals":["Foundation Models"],"companies":["Google"],"headline":"Google发布新一代多模态基础模型","summary":"在长上下文与推理能力上有明显提升，主打企业级应用场景。","source":"The Verge" },
+    { "id":"0006","time":"06:30","region":"china","verticals":["AI Phone"],"companies":["字节跳动"],"headline":"字节跳动视频模型接入剪映","summary":"新一代AI视频生成能力面向创作者开放，国产多模态模型持续渗透消费级工具链。","source":"36氪" },
+    { "id":"0007","time":"06:12","region":"china","verticals":["Foundation Models"],"companies":["DeepSeek"],"headline":"DeepSeek发布新一代开源模型","summary":"推理、代码与长文本能力上进一步提升，持续领跑开源模型阵营。","source":"财联社" },
+    { "id":"0008","time":"05:58","region":"global","verticals":["Robotics"],"companies":["Meta"],"headline":"Meta机器人研发团队扩张","summary":"加大在具身智能领域的投入，被视为下一代AI硬件布局的一部分。","source":"Bloomberg" },
+    { "id":"0009","time":"05:40","region":"china","verticals":["AI Phone"],"companies":["华为"],"headline":"华为推出新一代AI手机芯片","summary":"面向端侧大模型推理场景全面升级，主打本地化AI体验。","source":"IT之家" },
+    { "id":"0010","time":"05:22","region":"china","verticals":["AI Agent","AI Search"],"companies":["Qwen"],"headline":"Qwen开放新一代搜索增强能力","summary":"支持更复杂的多步检索任务，面向企业知识库场景优化。","source":"量子位" },
+    { "id":"0011","time":"05:05","region":"china","verticals":["AI Agent"],"companies":["Kimi"],"headline":"Kimi推出长任务规划功能","summary":"支持跨多轮对话的任务拆解与执行跟踪，主打个人助理场景。","source":"极客公园" },
+    { "id":"0012","time":"04:50","region":"global","verticals":["AI Investment"],"companies":["OpenAI"],"headline":"OpenAI新一轮融资估值传闻","summary":"市场消息称新一轮融资估值大幅提升，尚未获官方证实。","source":"The Information" },
+    { "id":"0013","time":"04:30","region":"global","verticals":["AI Enterprise"],"companies":["Anthropic"],"headline":"Anthropic企业客户数持续增长","summary":"披露企业级API调用量同比大幅提升，金融与法律行业采用率领先。","source":"Reuters" },
+    { "id":"0014","time":"04:10","region":"global","verticals":["AI Infrastructure"],"companies":["NVIDIA","Google"],"headline":"云厂商争相锁定下一代芯片产能","summary":"多家云厂商被曝提前锁定新一代AI芯片供货，产能竞争加剧。","source":"CNBC" },
+    { "id":"0015","time":"03:55","region":"global","verticals":["AI Hardware"],"companies":["Meta"],"headline":"Meta智能眼镜新品曝光","summary":"被曝正在测试搭载本地AI推理能力的新一代穿戴设备。","source":"The Verge" }
+  ]};
+
+  let ALL_ITEMS = [];
+  let state = { view: 'global', vertical: VERTICALS[0], company: COMPANIES[0] };
+
+  function formatDate(iso){
+    try{
+      const d = new Date(iso);
+      const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
+      const weekday = ['周日','周一','周二','周三','周四','周五','周六'][d.getDay()];
+      return `${y}/${m}/${day} ${weekday}`;
+    }catch(e){ return '日期未知'; }
+  }
+
+  function buildChips(){
+    const vEl = document.getElementById('vertical-chips');
+    vEl.innerHTML = VERTICALS.map(v => `<span class="sub-chip" data-v="${v}">${v}</span>`).join('');
+    vEl.querySelectorAll('.sub-chip').forEach(chip => {
+      chip.addEventListener('click', () => { state.vertical = chip.dataset.v; renderAll(); });
+    });
+
+    const cEl = document.getElementById('company-chips');
+    cEl.innerHTML = COMPANIES.map(c => `<span class="sub-chip" data-c="${c}">${c}</span>`).join('');
+    cEl.querySelectorAll('.sub-chip').forEach(chip => {
+      chip.addEventListener('click', () => { state.company = chip.dataset.c; renderAll(); });
+    });
+  }
+
+  function getViewItems(){
+    if(state.view === 'global'){
+      return { items: ALL_ITEMS.filter(i => i.region === 'global').slice(0, 20), title: 'GLOBAL TOP 20', limit: 20 };
+    }
+    if(state.view === 'china'){
+      return { items: ALL_ITEMS.filter(i => i.region === 'china').slice(0, 20), title: 'CHINA TOP 20', limit: 20 };
+    }
+    if(state.view === 'vertical'){
+      const items = ALL_ITEMS.filter(i => (i.verticals || []).includes(state.vertical)).slice(0, 5);
+      return { items, title: `${state.vertical} · TOP 5`, limit: 5 };
+    }
+    if(state.view === 'company'){
+      const items = ALL_ITEMS.filter(i => (i.companies || []).includes(state.company)).slice(0, 5);
+      return { items, title: `${state.company} · TOP 5`, limit: 5 };
+    }
+    return { items: [], title: '', limit: 0 };
+  }
+
+  function renderList(){
+    const { items, title, limit } = getViewItems();
+    document.getElementById('section-title-text').textContent = title;
+    document.getElementById('section-count').textContent = `${items.length} / ${limit}`;
+
+    const listEl = document.getElementById('list');
+    if(items.length === 0){
+      listEl.innerHTML = '<div class="empty">今日该分类暂无收录到的相关新闻。</div>';
+      return;
+    }
+    listEl.innerHTML = items.map((item, idx) => `
+      <details class="row">
+        <summary>
+          <span class="rank">${String(idx+1).padStart(2,'0')}</span>
+          <span class="row-headline">${item.headline || ''}</span>
+          <span class="row-time">${item.time || ''}</span>
+        </summary>
+        <div class="row-body">
+          <div class="row-summary">${item.summary || ''}</div>
+          <div class="row-tags">
+            ${(item.verticals||[]).map(v => `<span class="row-tag">${v}</span>`).join('')}
+            ${(item.companies||[]).map(c => `<span class="row-tag">${c}</span>`).join('')}
+            <span class="row-source">${item.source || '未知来源'}</span>
+          </div>
+        </div>
+      </details>
+    `).join('');
+  }
+
+  function renderAll(){
+    document.querySelectorAll('.main-tab').forEach(t => t.classList.toggle('active', t.dataset.view === state.view));
+    document.getElementById('vertical-chips').classList.toggle('show', state.view === 'vertical');
+    document.getElementById('company-chips').classList.toggle('show', state.view === 'company');
+    document.querySelectorAll('#vertical-chips .sub-chip').forEach(c => c.classList.toggle('active', c.dataset.v === state.vertical));
+    document.querySelectorAll('#company-chips .sub-chip').forEach(c => c.classList.toggle('active', c.dataset.c === state.company));
+    renderList();
+  }
+
+  function init(data){
+    ALL_ITEMS = data.items || [];
+    document.getElementById('date-line').textContent = formatDate(data.updated_at);
+    document.getElementById('count-num').textContent = ALL_ITEMS.length;
+
+    buildChips();
+    document.querySelectorAll('.main-tab').forEach(tab => {
+      tab.addEventListener('click', () => { state.view = tab.dataset.view; renderAll(); });
+    });
+    renderAll();
+  }
+
+  fetch('news.json', { cache: 'no-store' })
+    .then(res => { if(!res.ok) throw new Error('not found'); return res.json(); })
+    .then(init)
+    .catch(() => init(FALLBACK_DATA));
+</script>
+</body>
+</html>
